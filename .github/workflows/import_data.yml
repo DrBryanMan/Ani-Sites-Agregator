@@ -24,6 +24,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Check installed packages
+      run: pip list
+
     - name: Run import script
       env:
         TOLOKA_USERNAME: ${{ secrets.TOLOKA_USERNAME }}
