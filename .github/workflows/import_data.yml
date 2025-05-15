@@ -26,7 +26,7 @@ jobs:
     - name: Run import script
       env:
         TOLOKA_USERNAME: ${{ secrets.TOLOKA_USERNAME }}
-        TOLOKA_USERNAME: ${{ secrets.TOLOKA_PASSWORD }}
+        TOLOKA_PASSWORD: ${{ secrets.TOLOKA_PASSWORD }}
       run: python runImports.py
 
     - name: Commit and push if changed
