@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аґреґатор аніме сайтів</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <!-- CSS Bootstrap 5 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <link rel="stylesheet" href="css.css">
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="#anitube-all" class="nav-link active" data-section="anitube-all" data-json="anitube_links.json">AniTube</a>
+            <a href="#uaserial-all" class="nav-link" data-section="uaserial-all" data-json="uaserial_links.json">UaSerial</a>
+            <a href="#uakino-all" class="nav-link" data-section="uakino-all" data-json="uakino_links.json">UaKino</a>
+            <a href="#toloka-all" class="nav-link" data-section="toloka-all" data-json="toloka_links.json">Toloka Dub</a>
+            <a href="#toloka-sub-all" class="nav-link" data-section="toloka-sub-all" data-json="toloka-sub_links.json">Toloka Sub</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <section id="anitube-all" class="section active">
+            <div class="catalog" id="anitube-all-catalog"></div>
+            <ul class="pagination" id="anitube-all-pagination"></ul>
+        </section>
+        <section id="uaserial-all" class="section">
+            <div class="catalog" id="uaserial-all-catalog"></div>
+            <ul class="pagination" id="uaserial-all-pagination"></ul>
+        </section>
+        <section id="uakino-all" class="section">
+            <div class="catalog" id="uakino-all-catalog"></div>
+            <ul class="pagination" id="uakino-all-pagination"></ul>
+        </section>
+        <section id="toloka-all" class="section">
+            <div class="catalog" id="toloka-all-catalog"></div>
+            <ul class="pagination" id="toloka-all-pagination"></ul>
+        </section>
+        <section id="toloka-sub-all" class="section">
+            <div class="catalog" id="toloka-sub-all-catalog"></div>
+            <ul class="pagination" id="toloka-sub-all-pagination"></ul>
+        </section>
+    </div>
+    <script type="module" src="js.js"></script>
+</body>
+</html>
