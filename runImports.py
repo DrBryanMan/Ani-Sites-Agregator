@@ -1,4 +1,5 @@
 import requests
+import cloudscraper
 from bs4 import BeautifulSoup
 import json
 import os
@@ -47,10 +48,13 @@ class UniversalScraper:
         else:
             raise ScraperException(f"Невідомий тип сайту: {site_type}")
         
-        self.session = requests.Session()
+        self.session = cloudscraper.create_scraper()  # автоматично обходить Cloudflare
         self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "referrerpolicy": "no-referrer"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+            "Accept-Language": "uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Referer": "https://uakino.me/",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Connection": "keep-alive"
         }
         
     def login(self) -> None:
@@ -78,17 +82,14 @@ class UniversalScraper:
         print("Успішний вхід!")
         
     def make_request(self, url: str) -> BeautifulSoup:
-        """Виконує HTTP запит і повертає об'єкт BeautifulSoup"""
+        """Виконує HTTP запит і повертає об'єкт BeautifulSoup, обходячи захист Cloudflare"""
         try:
-            if self.site_type == "toloka":
-                response = self.session.get(url, headers=self.headers)
-            else:
-                response = requests.get(url, headers=self.headers)
-                
+            response = self.session.get(url, headers=self.headers)
             response.raise_for_status()
             return BeautifulSoup(response.text, "html.parser")
         except requests.RequestException as e:
             raise ScraperException(f"Помилка запиту до {url}: {e}")
+
     
     def extract_id(self, link: str) -> str:
         """Витягує ID з посилання в залежності від типу сайту"""
