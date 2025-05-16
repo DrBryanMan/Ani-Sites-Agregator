@@ -20,16 +20,6 @@ class UniversalScraper:
         """
         self.site_type = site_type.lower()
         
-        # Розширений список User-Agent для ротації
-        self.user_agents = [
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (iPad; CPU OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0"
-        ]
-        
         if self.site_type == "anitube":
             self.base_url = "https://anitube.in.ua/anime"
             self.img_url = "https://anitube.in.ua"
@@ -46,33 +36,48 @@ class UniversalScraper:
             self.links_file = "data/uaserial_links.json"
             self.site_field = "uaserial"
         elif self.site_type == "toloka":
-            # self.base_url = "https://toloka.to/f127"
+            self.base_url = "https://toloka.to/f127"
+            self.link_url = "https://toloka.to"
+            self.img_url = "https:"
+            self.links_file = "data/toloka_links.json"
+            self.site_field = "toloka"
+            self.items_per_page = 90
+        elif self.site_type == "toloka":
             self.base_url = "https://toloka.to/f194"
             self.link_url = "https://toloka.to"
             self.img_url = "https:"
-            # self.links_file = "data/toloka_links.json"
             self.links_file = "data/toloka-sub_links.json"
             self.site_field = "toloka"
             self.items_per_page = 90
         else:
             raise ScraperException(f"Невідомий тип сайту: {site_type}")
         
+        # Розширений список User-Agent для ротації
+        self.user_agents = [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (iPad; CPU OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0"
+        ]
+        
         # Створення сесії з можливістю перенаправлень
         self.session = requests.Session()
         self.session.headers.update({
             "User-Agent": random.choice(self.user_agents),
+            "referrerpolicy": "no-referrer",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
             "Accept-Language": "uk,en-US;q=0.7,en;q=0.3",
             "Accept-Encoding": "gzip, deflate, br",
-            "Referer": f"https://{self.site_type}.to/",
+            "Referer": f"{img_url}/",
             "DNT": "1",
             "Connection": "keep-alive",
             "Upgrade-Insecure-Requests": "1",
             "Sec-Fetch-Dest": "document",
             "Sec-Fetch-Mode": "navigate",
             "Sec-Fetch-Site": "same-origin",
-            "Sec-Fetch-User": "?1",
-            "referrerpolicy": "no-referrer"
+            "Sec-Fetch-User": "?1"
         })
         
     def login(self) -> None:
@@ -82,71 +87,30 @@ class UniversalScraper:
             return
             
         login_url = "https://toloka.to/login.php"
-        # username = os.environ.get("TOLOKA_USERNAME")
-        # password = os.environ.get("TOLOKA_PASSWORD")
+        username = os.environ.get("TOLOKA_USERNAME")
+        password = os.environ.get("TOLOKA_PASSWORD")
 
-        # if not username or not password:
-        #     raise ScraperException("TOLOKA_USERNAME або TOLOKA_PASSWORD не задані в середовищі.")
+        if not username or not password:
+            raise ScraperException("TOLOKA_USERNAME або TOLOKA_PASSWORD не задані в середовищі.")
 
         payload = {
-            # "username": username,
-            # "password": password,
-            "username": "Dr.Bryan",
-            "password": "f787067e",
+            "username": username,
+            "password": password,
             "autologin": "on",
             "login": "Вхід"
         }
-        
-        self.session.headers.update({
-            "User-Agent": random.choice(self.user_agents)
-        })
-        
-        response = self.session.post(login_url, data=payload, headers=self.session.headers)
+        response = self.session.post(login_url, data=payload, headers=self.headers)
         if "Вихід" not in response.text and "вийти" not in response.text.lower():
             raise ScraperException("Не вдалося авторизуватися. Перевір логін або пароль.")
         print("Успішний вхід!")
         
-    def make_request(self, url: str, retries=3, delay=2) -> BeautifulSoup:
-        """Виконує HTTP запит і повертає об'єкт BeautifulSoup"""
-        for attempt in range(retries):
-            try:
-                # Ротація User-Agent для кожного запиту
-                self.session.headers.update({
-                    "User-Agent": random.choice(self.user_agents)
-                })
-                
-                # Додаємо випадкову затримку для імітації людської поведінки
-                if attempt > 0:
-                    time.sleep(random.uniform(1.0, 3.0))
-                
-                # print(f"Спроба {attempt+1}/{retries} запиту до {url}")
-                
-                if self.site_type == "toloka":
-                    response = self.session.get(url, headers=self.session.headers, timeout=10)
-                else:
-                    response = self.session.get(url, headers=self.session.headers, timeout=10)
-                
-                # Перевірка на CloudFlare або інші системи захисту
-                if "cloudflare" in response.text.lower() or "captcha" in response.text.lower():
-                    print("Виявлено захист CloudFlare або captcha, пауза і повторна спроба...")
-                    time.sleep(delay * 2)
-                    continue
-                    
-                response.raise_for_status()
-                
-                # Зберігаємо cookies для наступних запитів
-                self.session.cookies.update(response.cookies)
-                
-                return BeautifulSoup(response.text, "html.parser")
-            except requests.RequestException as e:
-                print(f"Помилка запиту (спроба {attempt+1}): {e}")
-                if attempt < retries - 1:
-                    sleep_time = delay * (attempt + 1)
-                    print(f"Очікування {sleep_time} секунд перед повторною спробою...")
-                    time.sleep(sleep_time)
-                else:
-                    print("Вичерпано всі спроби запиту.")
-                    raise ScraperException(f"Помилка запиту до {url}: {e}")
+    def make_request(self, url: str) -> BeautifulSoup:
+        try:
+            response = self.session.get(url)
+            response.raise_for_status()
+            return BeautifulSoup(response.text, "html.parser")
+        except requests.RequestException as e:
+            raise ScraperException(f"Помилка запиту до {url}: {e}")
     
     def extract_id(self, link: str) -> str:
         """Витягує ID з посилання в залежності від типу сайту"""
@@ -273,7 +237,6 @@ class UniversalScraper:
             
             if self.site_type == "anitube":
                 last_page_element = soup.select_one(".navigation .navi_pages a:last-child")
-                page_reduction = 0
             elif self.site_type == "uakino":
                 last_page_element = soup.select_one(".navigation a:last-child")
                 # Для UAKino зменшуємо максимальну кількість сторінок на 2
@@ -390,10 +353,6 @@ class UniversalScraper:
         """Збирає посилання на елементи з усіх або вказаної кількості сторінок"""
         if max_pages is None:
             max_pages = self.get_max_pages()
-            
-            # Обмежуємо максимум сторінок для uakino для стабільності
-            # if self.site_type == "uakino":
-            #     max_pages = min(max_pages, 5)
         
         print(f"Збираю посилання з {max_pages} сторінок для {self.site_type}...")
         all_items = []
@@ -413,19 +372,10 @@ class UniversalScraper:
                 
                 soup = self.make_request(page_url)
                 
-                # Перевірка на порожню відповідь або помилки
-                if not soup:
-                    print(f"Не отримано відповідь від {page_url}")
-                    continue
-                
                 if self.site_type == "anitube":
                     item_blocks = soup.select(".story")
                 elif self.site_type == "uakino":
                     item_blocks = soup.select(".movie-item")
-                    # Перевірка на порожній результат
-                    if not item_blocks:
-                        print(f"Не знайдено елементи на сторінці {page_url}")
-                        continue
                 elif self.site_type == "uaserial":
                     item_blocks = soup.select("#filters-grid-content .col .item")
                 elif self.site_type == "toloka":
@@ -443,8 +393,6 @@ class UniversalScraper:
                 # Затримка між запитами для запобігання блокуванню
                 if self.site_type == "toloka":
                     time.sleep(random.uniform(2.0, 3.5))
-                elif self.site_type == "uakino":
-                    time.sleep(random.uniform(2.0, 5.0))
                 else:
                     time.sleep(random.uniform(1.0, 2.5))
             except Exception as e:
@@ -483,8 +431,6 @@ class UniversalScraper:
                 pages_to_check = 10
             elif self.site_type == "toloka":
                 pages_to_check = 3
-            # elif self.site_type == "uakino":
-                # pages_to_check = 2  # Для uakino перевіряємо менше сторінок через посилений захист
             else:
                 pages_to_check = 5
         
@@ -571,91 +517,59 @@ class UniversalScraper:
         try:
             print(f"Запуск скрапінгу для {self.site_type.upper()}")
             
-            # Спочатку перевіримо доступність сайту для uakino
-            if self.site_type == "uakino":
-                print("Перевірка доступності сайту...")
-                try:
-                    init_test = self.make_request(self.base_url)
-                    print("Сайт доступний, починаємо скрапінг.")
-                except Exception as e:
-                    print(f"Сайт недоступний або блокує запити: {e}")
-                    print("Пробуємо з альтернативними заголовками...")
-                    # Оновлюємо заголовки для наступної спроби
-                    self.session.headers.update({
-                        "User-Agent": random.choice(self.user_agents)
-                    })
-            
             # Для Толоки потрібна авторизація перед початком скрапінгу
             if self.site_type == "toloka":
                 self.login()
                 
             if not os.path.exists(self.links_file):
                 print("Файл зі списком посилань не знайдено. Збираю всі посилання...")
-                # Отримуємо максимальну кількість сторінок для сайту
-                max_pages = self.get_max_pages()
-                
-                # Обмежуємо максимальну кількість сторінок для UAKino
-                # if self.site_type == "uakino":
-                #     max_pages = min(max_pages, 10)  # Обмежуємо до 10 сторінок для першого запуску
-                
-                # Збираємо всі посилання
-                links = self.collect_links(max_pages)
-                
-                # Зберігаємо у файл
+                links = self.collect_links()
                 self.save_links(links)
-                
-                return links
             else:
                 print("Файл зі списком посилань знайдено. Оновлюю список...")
-                # Визначаємо кількість сторінок для оновлення в залежності від сайту
-                # if self.site_type == "anitube":
-                #     pages_to_check = 5
-                # elif self.site_type == "toloka":
-                #     pages_to_check = 3
-                # elif self.site_type == "uakino":
-                #     pages_to_check = 2  # Менше сторінок для uakino через захист
-                # else:
-                #     pages_to_check = 3
-                    
-                # Оновлюємо список посилань
-                # updated_links = self.update_links(pages_to_check)
                 self.update_links()
-                
-                # return updated_links
-                
-        except ScraperException as e:
-            print(f"Помилка скрапінгу: {e}")
-            return []
+            
+            print(f"Скрапінг {self.site_type.upper()} завершено успішно!")
         except Exception as e:
-            print(f"Неочікувана помилка: {e}")
-            return []
+            print(f"Помилка при виконанні скрапінгу для {self.site_type}: {e}")
 
 
-def main():
-    """Головна функція для запуску скрапінгу"""
-    # Список сайтів для скрапінгу
+def run_all_scrapers():
+    """Запускає скрапінг для всіх сайтів"""
     sites = ["anitube", "uakino", "uaserial", "toloka"]
     
     for site in sites:
-        try:
-            print(f"\n{'='*50}\nЗапуск скрапера для {site.upper()}\n{'='*50}")
-            
-            scraper = UniversalScraper(site_type=site)
-            results = scraper.run()
-            
-            print(f"Зібрано {len(results)} елементів для {site}")
-            
-            # Пауза між скрапінгом різних сайтів
-            if site != sites[-1]:
-                pause_time = random.uniform(10.0, 15.0)
-                print(f"Пауза {pause_time:.1f} секунд перед переходом до наступного сайту...")
-                time.sleep(pause_time)
-                
-        except Exception as e:
-            print(f"Помилка при скрапінгу сайту {site}: {e}")
-            
-    print("\nСкрапінг завершено!")
+        print(f"\n{'-'*50}")
+        print(f"Запуск скрапера для {site.upper()}")
+        print(f"{'-'*50}\n")
+        
+        scraper = UniversalScraper(site)
+        scraper.run()
+        
+        print(f"\n{'-'*50}")
+        print(f"Завершено скрапінг для {site.upper()}")
+        print(f"{'-'*50}\n")
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Універсальний скрапер для аніме сайтів.')
+    parser.add_argument('--site', type=str, choices=['anitube', 'uakino', 'uaserial', 'toloka', 'all'],
+                        default='all', help='Сайт для скрапінгу (за замовчуванням: all)')
+    
+    args = parser.parse_args()
+    
+    if args.site == 'all':
+        run_all_scrapers()
+    else:
+        print(f"\n{'-'*50}")
+        print(f"Запуск скрапера для {args.site.upper()}")
+        print(f"{'-'*50}\n")
+        
+        scraper = UniversalScraper(args.site)
+        scraper.run()
+        
+        print(f"\n{'-'*50}")
+        print(f"Завершено скрапінг для {args.site.upper()}")
+        print(f"{'-'*50}\n")
