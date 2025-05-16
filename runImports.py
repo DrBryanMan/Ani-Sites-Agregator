@@ -24,61 +24,34 @@ class UniversalScraper:
             self.base_url = "https://anitube.in.ua/anime"
             self.img_url = "https://anitube.in.ua"
             self.links_file = "data/anitube_links.json"
-            self.site_field = "anitube"
         elif self.site_type == "uakino":
             self.base_url = "https://uakino.me/animeukr"
             self.img_url = "https://uakino.me"
             self.links_file = "data/uakino_links.json"
-            self.site_field = "uakino"
         elif self.site_type == "uaserial":
             self.base_url = "https://uaserial.me/anime"
             self.img_url = "https://uaserial.me"
             self.links_file = "data/uaserial_links.json"
-            self.site_field = "uaserial"
         elif self.site_type == "toloka":
             self.base_url = "https://toloka.to/f127"
             self.link_url = "https://toloka.to"
             self.img_url = "https:"
             self.links_file = "data/toloka_links.json"
-            self.site_field = "toloka"
             self.items_per_page = 90
-        elif self.site_type == "toloka":
+        elif self.site_type == "toloka-sub":
             self.base_url = "https://toloka.to/f194"
             self.link_url = "https://toloka.to"
             self.img_url = "https:"
             self.links_file = "data/toloka-sub_links.json"
-            self.site_field = "toloka"
             self.items_per_page = 90
         else:
             raise ScraperException(f"Невідомий тип сайту: {site_type}")
         
-        # Розширений список User-Agent для ротації
-        self.user_agents = [
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (iPad; CPU OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0"
-        ]
-        
-        # Створення сесії з можливістю перенаправлень
         self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": random.choice(self.user_agents),
-            "referrerpolicy": "no-referrer",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-            "Accept-Language": "uk,en-US;q=0.7,en;q=0.3",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Referer": f"{self.img_url}/",
-            "DNT": "1",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "same-origin",
-            "Sec-Fetch-User": "?1"
-        })
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "referrerpolicy": "no-referrer"
+        }
         
     def login(self) -> None:
         """Авторизація на сайті (лише для Толоки)"""
@@ -105,8 +78,13 @@ class UniversalScraper:
         print("Успішний вхід!")
         
     def make_request(self, url: str) -> BeautifulSoup:
+        """Виконує HTTP запит і повертає об'єкт BeautifulSoup"""
         try:
-            response = self.session.get(url)
+            if self.site_type == "toloka":
+                response = self.session.get(url, headers=self.headers)
+            else:
+                response = requests.get(url, headers=self.headers)
+                
             response.raise_for_status()
             return BeautifulSoup(response.text, "html.parser")
         except requests.RequestException as e:
@@ -428,11 +406,11 @@ class UniversalScraper:
         # Визначаємо кількість сторінок для перевірки в залежності від сайту
         if pages_to_check is None:
             if self.site_type == "anitube":
-                pages_to_check = 2
+                pages_to_check = 10
             elif self.site_type == "toloka":
-                pages_to_check = 1
+                pages_to_check = 3
             else:
-                pages_to_check = 2
+                pages_to_check = 5
         
         existing_links = self.load_links()
         existing_urls = {item["link"] for item in existing_links}
