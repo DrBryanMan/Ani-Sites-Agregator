@@ -257,7 +257,7 @@ async function renderAnimeCards(sectionId, jsonFilename, page = 1, searchTerm = 
         const clearBtn = searchBar.querySelector('.clear-search-btn');
 
         searchInput.addEventListener('input', () => {
-            const term = searchInput.value.trim().toLowerCase();
+            const term = searchInput.value.toLowerCase();
             // При введенні пошуку починаємо з першої сторінки результатів або використовуємо збережену
             const pageToUse = term !== '' && paginationState[sectionId].searchTerm === '' ? 
                 1 : // Якщо це перший пошук - починаємо з першої сторінки
@@ -472,4 +472,12 @@ document.addEventListener('DOMContentLoaded', function() {
                       paginationState[sectionId].currentPage;
     
     renderAnimeCards(sectionId, jsonFilename, pageToUse, paginationState[sectionId].searchTerm);
+        
+    // Встановлюємо збережений пошуковий запит в поле вводу
+    setTimeout(() => {
+        const searchInput = document.querySelector(`#${sectionId} .search-input`);
+        if (searchInput && paginationState[sectionId].searchTerm) {
+            searchInput.value = paginationState[sectionId].searchTerm;
+        }
+    }, 100);
 });
