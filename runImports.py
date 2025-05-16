@@ -70,7 +70,7 @@ class UniversalScraper:
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
             "Accept-Language": "uk,en-US;q=0.7,en;q=0.3",
             "Accept-Encoding": "gzip, deflate, br",
-            "Referer": f"{img_url}/",
+            "Referer": f"{self.img_url}/",
             "DNT": "1",
             "Connection": "keep-alive",
             "Upgrade-Insecure-Requests": "1",
@@ -428,11 +428,11 @@ class UniversalScraper:
         # Визначаємо кількість сторінок для перевірки в залежності від сайту
         if pages_to_check is None:
             if self.site_type == "anitube":
-                pages_to_check = 10
+                pages_to_check = 2
             elif self.site_type == "toloka":
-                pages_to_check = 3
+                pages_to_check = 1
             else:
-                pages_to_check = 5
+                pages_to_check = 2
         
         existing_links = self.load_links()
         existing_urls = {item["link"] for item in existing_links}
