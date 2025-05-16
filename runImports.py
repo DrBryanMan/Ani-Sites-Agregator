@@ -60,17 +60,15 @@ class UniversalScraper:
             return
             
         login_url = "https://toloka.to/login.php"
-        # username = os.environ.get("TOLOKA_USERNAME")
-        # password = os.environ.get("TOLOKA_PASSWORD")
+        username = os.environ.get("TOLOKA_USERNAME")
+        password = os.environ.get("TOLOKA_PASSWORD")
 
-        # if not username or not password:
-        #     raise ScraperException("TOLOKA_USERNAME або TOLOKA_PASSWORD не задані в середовищі.")
+        if not username or not password:
+            raise ScraperException("TOLOKA_USERNAME або TOLOKA_PASSWORD не задані в середовищі.")
 
         payload = {
-            # "username": username,
-            # "password": password,
-            "username": "Dr.Bryan",
-            "password": "f787067e",
+            "username": username,
+            "password": password,
             "autologin": "on",
             "login": "Вхід"
         }
@@ -100,8 +98,8 @@ class UniversalScraper:
             if match:
                 return match.group(1)
         elif self.site_type == "uakino":
-            # Шукаємо ID у посиланні вигляду https://uakino.me/filmy/123-film-name.html
-            match = re.match(r"https?://uakino\.me/animeukr/(\d+)-", link)
+            # Шукаємо ID у посиланні вигляду https://uakino.me/animeukr/.../123-film-name.html
+            match = re.match(r"https?://uakino\.me/animeukr/(?:[\w\-]+/)*(\d+)-", link)
             if match:
                 return match.group(1)
         elif self.site_type == "toloka":
