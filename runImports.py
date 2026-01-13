@@ -119,7 +119,7 @@ class UniversalScraper:
             
         try:
             soup = self.make_request(detail_url)
-            poster_element = soup.select_one(".postbody div img")
+            poster_element = soup.select_one(".story_post img")
             if poster_element:
                 poster_url = poster_element.get("src")
                 if poster_url and not poster_url.startswith("http"):
@@ -552,3 +552,4 @@ if __name__ == "__main__":
         print(f"\n{'-'*50}")
         print(f"Завершено скрапінг для {args.site.upper()}")
         print(f"{'-'*50}\n")
+
