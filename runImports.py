@@ -48,7 +48,7 @@ class UniversalScraper:
         else:
             raise ScraperException(f"Невідомий тип сайту: {site_type}")
         
-        self.session = cloudscraper.create_scraper()  # автоматично обходить Cloudflare
+        self.session = cloudscraper.create_scraper()
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
             "Accept-Language": "uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7",
@@ -552,4 +552,5 @@ if __name__ == "__main__":
         print(f"\n{'-'*50}")
         print(f"Завершено скрапінг для {args.site.upper()}")
         print(f"{'-'*50}\n")
+
 
