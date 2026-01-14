@@ -119,7 +119,7 @@ class UniversalScraper:
             
         try:
             soup = self.make_request(detail_url)
-            poster_element = soup.select_one(".story_post img")
+            poster_element = soup.select_one('img[src*="toloka.to/photos"]') or soup.select_one('img[src*="hurtom.com"]')
             if poster_element:
                 poster_url = poster_element.get("src")
                 if poster_url and not poster_url.startswith("http"):
@@ -143,7 +143,10 @@ class UniversalScraper:
                 
                 # Знаходимо посилання на постер
                 poster_element = item_block.select_one(".story_c_l .story_post img")
-                poster_url = poster_element.get("src") if poster_element else ""
+                if not poster_element:
+                    poster_element = item_block.select_one("img[src*='/full-news-poster/']") or item_block.select_one("img[data-src*='/full-news-poster/']")
+
+                poster_url = poster_element.get("src") or poster_element.get("data-src")
                 
                 # Повний URL постера
                 if poster_url and not poster_url.startswith("http"):
@@ -552,5 +555,3 @@ if __name__ == "__main__":
         print(f"\n{'-'*50}")
         print(f"Завершено скрапінг для {args.site.upper()}")
         print(f"{'-'*50}\n")
-
-
